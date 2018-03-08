@@ -4,8 +4,8 @@ logs/*
 aaa/*
 131xinggan/*
 image/*
-image2/*
-image3/*
+
+
 !.gitkeep
 node_modules/
 bower_components/
