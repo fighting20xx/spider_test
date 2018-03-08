@@ -4,7 +4,7 @@
 
 var fs = require('fs');
 var util = require('util');
-var path = './image/';
+var path = './image2/';
 
 function explorer(path){
     fs.readdir(path, function(err, files){

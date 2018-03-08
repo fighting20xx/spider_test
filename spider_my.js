@@ -60,7 +60,7 @@ function savedImg($) {
         var img_src = $(this).attr('src'); //获取图片的url
         var img_filename = img_src.slice(img_src.length-20)+".jpg";
         console.log(img_src);
-//采用request模块，向服务器发起一次请求，获取图片资源
+        //采用request模块，向服务器发起一次请求，获取图片资源
         request.head(img_src,function(err,res,body){
             if(err){
                 console.log(err);

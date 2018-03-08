@@ -112,6 +112,9 @@ function saveOnePageImages(url3) {
                     }
                 });
                 request(img_src).pipe(fs.createWriteStream('./image/' + img_filename));     //通过流的方式，把图片写到本地/image目录下，并用新闻的标题和图片的标题作为图片的名称。
+
+
+
             })
         }
     })
