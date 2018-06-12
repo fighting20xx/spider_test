@@ -13,9 +13,11 @@ var api = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx"; 
 var pageNumber = 6650;
 //初始url
 
-getApiData()
 
 
+
+
+getApiData();
 function getApiData() {
     http.get(api, function (res) {
         res.setEncoding('utf8');
@@ -34,8 +36,55 @@ function getApiData() {
             }
         });
     });
-
 }
+
+
+
+function handleData2(data) {
+    var list = data.list;
+    list.forEach(function (value,index) {
+        var sql = spellSql(value);
+
+        console.log(sql);
+        query(sql,function (err,rowdata,field) {
+            if(err) console.log("==> " ,err);
+        })
+    })
+}
+
+function spellSql(obj) {
+    var pre_sql = "insert into importData ("
+    var last_sql = "values ( ";
+
+    for (var item in obj){
+        var value = obj[item];
+        if( typeof  value == "string" && value == ""){
+
+        }else {
+            pre_sql += item+ " ,";
+            last_sql += "\""+value+ "\" ,";
+        }
+    }
+
+    pre_sql = pre_sql.substring(0,pre_sql.length-1) +" ) ";
+    last_sql = last_sql.substring(0,last_sql.length-1)+ " ) ";
+    return pre_sql + last_sql;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function handleData(data) {
     var list = data.list;
@@ -46,7 +95,7 @@ function handleData(data) {
             " gply, gpzt, gpztValue, hxs, hxt, hxw, hyid, hyjzsj,isnew,  jzmj, mdmc,qyid, qyzt,  " +
             " scgpshsj, sellnum, sqhysj,szlc,szlcname, tygpbh,wtcsjg,wtdqts,  wtxybh,  wtxycode, xqid,  xqmc,  xzqh, xzqhname, zzcs  " +
 
-        ") VALUES (  " +  value.accountid +","+
+            ") VALUES (  " +  value.accountid +","+
             value.accountname +" , "+
             value.cjsj +" , "+
             value.cqmc +" , "+
@@ -96,43 +145,11 @@ function handleData(data) {
             value.xzqhname+" , "+
             value.zzcs+
 
-       ")";
+            ")";
 
         console.log(sql);
         query(sql,function (err,rowdata,field) {
             if(err) console.log("==> " ,err);
         })
     })
-}
-
-function handleData2(data) {
-    var list = data.list;
-    list.forEach(function (value,index) {
-        var sql = spellSql(value);
-
-        console.log(sql);
-        query(sql,function (err,rowdata,field) {
-            if(err) console.log("==> " ,err);
-        })
-    })
-}
-
-function spellSql(obj) {
-
-    var array = Object.prototype.keys.call(obj)  //obj.keys;
-    var pre_sql = "insert into importData ("
-    var last_sql = "values ( ";
-    array.forEach(function (item,index) {
-        var value = obj[item];
-        if( typeof  value == "string" && value == ""){
-
-        }else {
-            pre_sql += item+ " ,";
-            last_sql += value+ " ,";
-        }
-    });
-
-    pre_sql = pre_sql.substr(0,-1) +" ) ";
-    last_sql = last_sql.substr(0,-1)+ " ) ";
-    return pre_sql + last_sql;
 }
