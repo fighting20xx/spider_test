@@ -9,16 +9,35 @@ var http = require('http');
 var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
-var api = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
+var rootApi = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
 var pageNumber = 6650;
 //初始url
 
 
-
-
-
-getApiData();
-function getApiData() {
+function Spider() {
+    this.maxThread = 20;
+    this.apiArr = [];
+    this.busyApi = [];
+}
+Spider.prototype.findAllApi =function () {
+    for (var i = 11 ;i<pageNumber; i++){
+        this.apiArr.push(rootApi +"?page="+i);
+    }
+};
+Spider.prototype.eachAllApi =function () {
+    if (!this.isBusy()){
+        var newApi = this.apiArr.shift();
+        if (newApi){
+            this.busyApi.push(newApi);
+            this.getApiData(newApi);
+            console.log("进度=================>"+(1 - this.apiArr.length/6650*100) +"%")
+        }else {
+            console.log("=====================> END");
+        }
+    }
+};
+Spider.prototype.getApiData =function (api) {
+    var that = this;
     http.get(api, function (res) {
         res.setEncoding('utf8');
         var rawData = '';
@@ -28,19 +47,24 @@ function getApiData() {
         res.on('end', function () {
             try {
                 const parsedData = JSON.parse(rawData);
-                // handleData(parsedData);
-                handleData2(parsedData);
+                that.endApi(api);
+                that.handleResultList(parsedData);
 
             } catch (e) {
                 console.error(e.message);
             }
         });
     });
-}
+};
+Spider.prototype.isBusy =function () {
+    return this.busyApi.length >= this.maxThread;
+};
+Spider.prototype.endApi =function (api) {
+    this.busyApi.splice(this.busyApi.indexOf(api) , 1)
+};
 
-
-
-function handleData2(data) {
+Spider.prototype.handleResultList = function (data) {
+    var that = this;
     var list = data.list;
     list.forEach(function (value,index) {
         var sql = spellSql(value);
@@ -48,9 +72,24 @@ function handleData2(data) {
         console.log(sql);
         query(sql,function (err,rowdata,field) {
             if(err) console.log("==> " ,err);
+            that.eachAllApi();
         })
-    })
-}
+    });
+};
+
+
+
+Spider.prototype.run =function () {
+    this.findAllApi();
+    this.eachAllApi();
+};
+
+var spider = new Spider();
+spider.run();
+
+
+
+
 
 function spellSql(obj) {
     var pre_sql = "insert into importData ("
@@ -65,91 +104,8 @@ function spellSql(obj) {
             last_sql += "\""+value+ "\" ,";
         }
     }
-
     pre_sql = pre_sql.substring(0,pre_sql.length-1) +" ) ";
     last_sql = last_sql.substring(0,last_sql.length-1)+ " ) ";
     return pre_sql + last_sql;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function handleData(data) {
-    var list = data.list;
-    list.forEach(function (value, index) {
-        console.log(value.accountid, value.cjsj,value.fczsh);
-        var sql =" INSERT into importData (accountid, accountname, cjsj,cqmc, cqsj, cyrybh,czfs, dqlc,  " +
-            "fbzt, fczsh,  fwtybh, fwyt,fwytValue,gisx,gisy, gpfyid,gphytgsj, gpid, gplxrcode, gplxrdh,  gplxrxm,  " +
-            " gply, gpzt, gpztValue, hxs, hxt, hxw, hyid, hyjzsj,isnew,  jzmj, mdmc,qyid, qyzt,  " +
-            " scgpshsj, sellnum, sqhysj,szlc,szlcname, tygpbh,wtcsjg,wtdqts,  wtxybh,  wtxycode, xqid,  xqmc,  xzqh, xzqhname, zzcs  " +
-
-            ") VALUES (  " +  value.accountid +","+
-            value.accountname +" , "+
-            value.cjsj +" , "+
-            value.cqmc +" , "+
-            value.cqsj+" , "+
-            value.cyrybh+" , "+
-            value.czfs+" , "+
-            value.dqlc+"  , "+
-            value.fbzt+" , "+
-            value.fczsh+" , "+
-            value.fwtybh+" , "+
-            value.fwyt+" , "+
-            value.fwytValue+" , "+
-            value.gisx+" , "+
-            value.gisy+" , "+
-            value.gpfyid+" , "+
-            value.gphytgsj+" , "+
-            value.gpid+" , "+
-            value.gplxrcode+" , "+
-            value.gplxrdh+" , "+
-            value.gplxrxm+" , "+
-            value.gply+" , "+
-            value.gpzt+" , "+
-            value.gpztValue+" , "+
-            value.hxs+" , "+
-            value.hxt+" , "+
-            value.hxw+" , "+
-            value.hyid+" , "+
-            value.hyjzsj+" , "+
-            value.isnew+" , "+
-            value.jzmj+" , "+
-            value.mdmc+" , "+
-            value.qyid+" , "+
-            value.qyzt+" , "+
-            value.scgpshsj+" , "+
-            value.sellnum+" , "+
-            value.sqhysj+" , "+
-            value.szlc+" , "+
-            value.szlcname+" , "+
-            value.tygpbh+" , "+
-            value.wtcsjg+" , "+
-            value.wtdqts+" , "+
-            value.wtxybh+" , "+
-            value.wtxycode+" , "+
-            value.xqid+" , "+
-            value.xqmc+" , "+
-            value.xzqh+" , "+
-            value.xzqhname+" , "+
-            value.zzcs+
-
-            ")";
-
-        console.log(sql);
-        query(sql,function (err,rowdata,field) {
-            if(err) console.log("==> " ,err);
-        })
-    })
-}
