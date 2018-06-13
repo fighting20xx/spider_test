@@ -15,12 +15,12 @@ var pageNumber = 6650;
 
 
 function Spider() {
-    this.maxThread = 20;
+    this.maxThread = 50;
     this.apiArr = [];
     this.busyApi = [];
 }
 Spider.prototype.findAllApi =function () {
-    for (var i = 11 ;i<pageNumber; i++){
+    for (var i = 1 ;i<pageNumber; i++){
         this.apiArr.push(rootApi +"?page="+i);
     }
 };
@@ -30,7 +30,7 @@ Spider.prototype.eachAllApi =function () {
         if (newApi){
             this.busyApi.push(newApi);
             this.getApiData(newApi);
-            console.log("进度=================>"+(1 - this.apiArr.length/6650*100) +"%")
+            console.log("进度=================>"+((1 - this.apiArr.length/6650)*100).toFixed(2) +"%")
         }else {
             console.log("=====================> END");
         }
