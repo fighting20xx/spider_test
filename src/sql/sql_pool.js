@@ -11,14 +11,10 @@ var pool = mysql.createPool({
     user: 'seven',
     password: '123456',
     database:'spiderdata',
-    port: 3306
+    port: 3306,
+    multipleStatements: true            // 允许 sql语句用分号隔开， 多条语句一次执行；
 });
 
-
-var insertSQL = 'INSERT INTO secondHandHouseData (	CODE,	address,	NAME,	area,	price,	company,	date) VALUES	(2, 2, 2, 2, 2, 2, 2)';
-var selectSQL = 'SELECT  * from secondHandHouseData';
-var deleteSQL = 'DELETE FROM  secondHandHouseData  WHERE id = 3 ';
-var updateSQL = 'UPDATE secondHandHouseData SET date = "2018-06-12" ';
 
 var query=function(sql,callback){
     pool.getConnection(function(err,conn){
@@ -37,14 +33,16 @@ var query=function(sql,callback){
             }
         }
     });
-
-
-
-
-
 };
 
 module.exports = query;
+
+
+
+// var insertSQL = 'INSERT INTO secondHandHouseData (	CODE,	address,	NAME,	area,	price,	company,	date) VALUES	(2, 2, 2, 2, 2, 2, 2)';
+// var selectSQL = 'SELECT  * from secondHandHouseData';
+// var deleteSQL = 'DELETE FROM  secondHandHouseData  WHERE id = 3 ';
+// var updateSQL = 'UPDATE secondHandHouseData SET date = "2018-06-12" ';
 
 // query(insertSQL,  function(err,results,fields){
 //     console.log(results);

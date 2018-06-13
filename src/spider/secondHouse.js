@@ -10,12 +10,12 @@ var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
 var rootApi = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
-var pageNumber = 6650;
+var pageNumber = 6678;
 //初始url
 
 
 function Spider() {
-    this.maxThread = 50;
+    this.maxThread = 40;
     this.apiArr = [];
     this.busyApi = [];
 }
@@ -30,7 +30,7 @@ Spider.prototype.eachAllApi =function () {
         if (newApi){
             this.busyApi.push(newApi);
             this.getApiData(newApi);
-            console.log("进度=================>"+((1 - this.apiArr.length/6650)*100).toFixed(2) +"%")
+            console.log("进度=================>"+((1 - this.apiArr.length/pageNumber)*100).toFixed(2) +"%")
         }else {
             console.log("=====================> END");
         }
@@ -60,28 +60,35 @@ Spider.prototype.isBusy =function () {
     return this.busyApi.length >= this.maxThread;
 };
 Spider.prototype.endApi =function (api) {
-    this.busyApi.splice(this.busyApi.indexOf(api) , 1)
+    this.busyApi.splice(this.busyApi.indexOf(api) , 1);
+    this.eachAllApi();
+};
+
+Spider.prototype.startMutilThread =function (api) {
+   for(var i=0; i<this.maxThread ;i++){
+       this.eachAllApi();
+   }
 };
 
 Spider.prototype.handleResultList = function (data) {
     var that = this;
     var list = data.list;
+    var sql ="";
     list.forEach(function (value,index) {
-        var sql = spellSql(value);
-
-        console.log(sql);
-        query(sql,function (err,rowdata,field) {
-            if(err) console.log("==> " ,err);
-            that.eachAllApi();
-        })
+          sql += spellSql(value);
     });
+
+    console.log(sql);                                //多条语句拼接在一起；
+    query(sql,function (err,rowdata,field) {
+        if(err) console.log("==> " ,err);
+    })
 };
 
 
 
 Spider.prototype.run =function () {
     this.findAllApi();
-    this.eachAllApi();
+    this.startMutilThread();
 };
 
 var spider = new Spider();
@@ -92,7 +99,7 @@ spider.run();
 
 
 function spellSql(obj) {
-    var pre_sql = "insert into importData ("
+    var pre_sql = "insert into importData_test ("
     var last_sql = "values ( ";
 
     for (var item in obj){
@@ -105,7 +112,7 @@ function spellSql(obj) {
         }
     }
     pre_sql = pre_sql.substring(0,pre_sql.length-1) +" ) ";
-    last_sql = last_sql.substring(0,last_sql.length-1)+ " ) ";
+    last_sql = last_sql.substring(0,last_sql.length-1)+ " ); ";
     return pre_sql + last_sql;
 }
 
