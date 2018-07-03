@@ -10,7 +10,7 @@ var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
 
-var pageNumber = 1000;                 //最大的页数            士大夫随风倒士大夫
+var pageNumber = 1000;                 //最大的页数 
 
 var rootApi = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
 var options = {
