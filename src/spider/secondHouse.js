@@ -9,7 +9,7 @@ var http = require('http');
 var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
-var pageNumber = 1000;                 //最大的页数
+var pageNumber = 3000;                 // 阿三顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶
 var rootApi = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
 var options = {
     hostname: 'jjhygl.hzfc.gov.cn',
@@ -91,7 +91,7 @@ Spider.prototype.handleResultList = function (data) {
     list.forEach(function (value,index) {
           sql += that.spellSql(value);
     });
-    console.log(sql);                                //多条语句拼接在一起；
+    // console.log(sql);                                //多条语句拼接在一起；
     query(sql,function (err,rowdata,field) {
         if(err) console.log("==> " ,err);
     })
