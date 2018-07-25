@@ -76,6 +76,7 @@ Spider.prototype.getApiData =function (api) {
 Spider.prototype.clear =function () {
 	query("delete from importData_test",function (err,rowdata,field) {
 		if(err) console.log("==> " ,err);
+		console.log("clear----------------->. ");
 	})
 };
 Spider.prototype.isBusy =function () {
