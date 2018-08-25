@@ -74,7 +74,7 @@ Spider.prototype.getApiData =function (api) {
 
 };
 Spider.prototype.clear =function () {
-	query("delete from importData_test",function (err,rowdata,field) {
+	query("delete from importData",function (err,rowdata,field) {
 		if(err) console.log("==> " ,err);
 		console.log("clear----------------->. ");
 	})
@@ -106,7 +106,7 @@ Spider.prototype.handleResultList = function (data) {
     })
 };
 Spider.prototype.spellSql =function (obj) {
-    var pre_sql = "insert into importData_test ("
+    var pre_sql = "insert into importData ("
     var last_sql = "values ( ";
 
     for (var item in obj){
