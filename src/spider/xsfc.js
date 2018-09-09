@@ -9,13 +9,13 @@ var http = require('http');
 var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
-
+var pageSize = 1200;
 
 var options = {
     hostname: 'api.fangshijie.cn',
     port: 80,
     method:'get',
-    path: 'http://api.fangshijie.cn/api/SellHouse/GetList?Title=&City=-1&Zone=-1&Type=-1&Decoration=-1&Price=-1&PriceOrder=&OpeningDateOrder=&PageIndex=3&PageSize=3',
+    path: 'http://api.fangshijie.cn/api/SellHouse/GetList?Title=&City=-1&Zone=-1&Type=-1&Decoration=-1&Price=-1&PriceOrder=&OpeningDateOrder=&PageIndex=3&PageSize='+pageSize,
     agent:new http.Agent({ keepAlive: true }),
     headers: {
         'Content-Type':'application/x-www-form-urlencoded',
@@ -68,8 +68,9 @@ Spider.prototype.handleResultList = function (data) {
     var that = this;
     var list = data.HouseList ;
 
-    var newList = list.slice();
+    this.clear(); //清空数据库；
 
+    var newList = list.slice();
     while(newList.length > 500) {
         var temp = newList.slice(0,500);
         this.saveData(temp);
@@ -109,22 +110,11 @@ Spider.prototype.saveData = function (list) {
         if(err) console.log("==> " ,err);
     })
 };
-Spider.prototype.spellSql =function (obj) {
-    var pre_sql = "insert into xsfc ("
-    var last_sql = "values ( ";
-
-    for (var item in obj){
-        var value = obj[item];
-        if( typeof  value == "string" && value == ""){
-
-        }else {
-            pre_sql += item+ " ,";
-            last_sql += "\""+value+ "\" ,";
-        }
-    }
-    pre_sql = pre_sql.substring(0,pre_sql.length-1) +" ) ";
-    last_sql = last_sql.substring(0,last_sql.length-1)+ " ); ";
-    return pre_sql + last_sql;
+Spider.prototype.clear =function () {
+    query("delete from xsfc",function (err,rowdata,field) {
+        if(err) console.log("==> " ,err);
+        console.log("clear----------------->. ");
+    })
 };
 Spider.prototype.run =function () {
     this.getApiData();
