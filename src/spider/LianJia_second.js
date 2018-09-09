@@ -5,18 +5,20 @@
 
 'use strict'
 
-var http = require('http');
+var http = require('https');
 var cheerio = require('cheerio');
+var superagent = require('superagent');
+var fs = require('fs');
+
 var query = require('../sql/sql_pool');
 
-var pageNumber = 1200;                 //最大的页数
-
-var rootApi = "http://jjhygl.hzfc.gov.cn/webty/WebFyAction_getGpxxSelectList.jspx";   //?page=8
+var pageNumber = 100;                 //最大的页数
+var rootApi = "https://hz.lianjia.com/ershoufang/pg100/";   //   最终拼接成这个样子
 var options = {
-    hostname: 'jjhygl.hzfc.gov.cn',
+    hostname: 'hz.lianjia.com',
     port: 80,
     path: '',
-    rootUrl:"/webty/WebFyAction_getGpxxSelectList.jspx?",
+    rootUrl:"/ershoufang/",
     agent:new http.Agent({ keepAlive: true }),
     headers: {
         'Content-Type':'application/x-www-form-urlencoded',
@@ -25,7 +27,7 @@ var options = {
     maxSockets:30
 };
 
-
+var Count = 0;
 
 function Spider() {
     this.maxThread = 30;
@@ -34,7 +36,7 @@ function Spider() {
 }
 Spider.prototype.findAllApi =function () {
     for (var i = 1 ;i<pageNumber; i++){
-        this.apiArr.push("page="+i);
+        this.apiArr.push("https://hz.lianjia.com/ershoufang/pg"+ i + '/');
     }
 };
 Spider.prototype.eachAllApi =function () {
@@ -52,30 +54,54 @@ Spider.prototype.eachAllApi =function () {
 Spider.prototype.getApiData =function (api) {
 
         var that = this;
-        options.path= options.rootUrl + api;
-        http.get(options, function (res) {
-            res.setEncoding('utf8');
-            var rawData = '';
-            res.on('data', function (chunk) {
-                rawData += chunk;
-            });
-            res.on('end', function () {
-                try {
-                    var parsedData = JSON.parse(rawData);
-                    that.endApi(api);
-                    that.handleResultList(parsedData);
-                } catch (e) {
-                    console.error(e.message);
-                }
-            });
-        });
+        // options.path= options.rootUrl + api;
+		//
+        // http.get(options, function (res) {
+        //     res.setEncoding('utf8');
+        //     var rawData = '';
+        //     res.on('data', function (chunk) {
+        //         rawData += chunk;
+        //     });
+        //     res.on('end', function () {
+        //         try {
+        //             var parsedData = JSON.parse(rawData);
+        //             that.endApi(api);
+        //             that.handleResultList(parsedData);
+        //         } catch (e) {
+        //             console.error(e.message);
+        //         }
+        //     });
+        // });
 
-};
-Spider.prototype.clear =function () {
-	query("delete from importData",function (err,rowdata,field) {
-		if(err) console.log("==> " ,err);
-		console.log("clear----------------->. ");
+
+	superagent.get(api).end( function (err,res) {
+		if(res) {
+
+			var $ = cheerio.load(res.text); //采用cheerio模块解析html
+
+			$('.LOGCLICKDATA').each(function (index, item) {
+				$(".title a",item).text();
+
+                console.log($(".title a",item).text());
+                console.log($(".houseInfo a",item).text());
+                console.log($(".houseInfo",item).text());
+
+                console.log($(".positionInfo",item).text());
+                console.log($(".positionInfo a",item).text());
+
+                console.log($(".followInfo",item).text());
+
+                console.log($(".totalPrice span",item).text());
+                console.log($(".totalPrice",item).text());
+                console.log($(".unitPrice span",item).text());
+
+                console.log(Count++);
+			});
+		}
 	})
+
+
+
 };
 Spider.prototype.isBusy =function () {
     return this.busyApi.length >= this.maxThread;
@@ -93,18 +119,20 @@ Spider.prototype.startMutilThread =function (api) {
 
 Spider.prototype.handleResultList = function (data) {
     var that = this;
-    var list = data.list;
+    var list = data.data.list;
     var sql ="";
     list.forEach(function (value,index) {
           sql += that.spellSql(value);
     });
-    // console.log(sql);                                //多条语句拼接在一起；
+    console.log(sql);                                //多条语句拼接在一起；
     query(sql,function (err,rowdata,field) {
         if(err) console.log("==> " ,err);
-    })
+    });
+
+    // console.log(data);
 };
 Spider.prototype.spellSql =function (obj) {
-    var pre_sql = "insert into importData ("
+    var pre_sql = "insert into lianjia_newbulid ("
     var last_sql = "values ( ";
 
     for (var item in obj){
@@ -121,7 +149,6 @@ Spider.prototype.spellSql =function (obj) {
     return pre_sql + last_sql;
 };
 Spider.prototype.run =function () {
-    this.clear();
     this.findAllApi();
     this.startMutilThread();
 };
