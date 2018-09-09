@@ -9,7 +9,7 @@ var http = require('http');
 var cheerio = require('cheerio');
 var query = require('../sql/sql_pool');
 
-var pageSize = 1200;
+var pageSize = 10000;
 
 var options = {
     hostname: 'api.fangshijie.cn',
@@ -93,19 +93,13 @@ Spider.prototype.saveData = function (list) {
         valueStr += '( ';
         keyList.forEach(function (key) {
             var value = item[key];
-            // if( typeof  value == "string"){
-                valueStr += "\""+value+ "\" ,";
-            // }else {
-            //     valueStr += "\""+value+ "\" ,";
-            // }
+            valueStr += "\""+value+ "\" ,";
         });
         valueStr = valueStr.substring(0, valueStr.length-1) + '),'
     });
-
     sql = sql+valueStr.substring(0, valueStr.length-1);
 
-
-    console.log(sql);                                //多条语句拼接在一起；
+    // console.log(sql);
     query(sql,function (err,rowdata,field) {
         if(err) console.log("==> " ,err);
     })
